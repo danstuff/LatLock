@@ -1,5 +1,6 @@
 package latLock;
  
+import java.io.File;
 import java.io.IOException;
 
 import javax.swing.AbstractButton;
@@ -154,6 +155,14 @@ public class LatLock extends JFrame {
 			@Override public void actionPerformed(ActionEvent a) {
 				try {
 					encrypt(seed_field.getPassword(), plaintext_field.getText());
+					
+					//remove original file
+					File f = new File(plaintext_field.getText());
+					f.delete();
+					
+					//clear password field
+					seed_field.setText("");
+					
 					output.setText("  Successfully encrypted to "+ENC_OUT_FILE);
 				} catch (IOException | NtruException e) {
 					output.setText("  ERROR: Encrypt failed: "+ e.getLocalizedMessage());
@@ -166,7 +175,11 @@ public class LatLock extends JFrame {
 		JButton dec_button = makeButton("Decrypt", new ActionListener() {
 			@Override public void actionPerformed(ActionEvent a) {
 				try {
-					decrypt(seed_field.getPassword(), plaintext_field.getText());
+					decrypt(seed_field.getPassword(), plaintext_field.getText());					
+					
+					//clear password field
+					seed_field.setText("");
+					
 					output.setText("  Successfully decrypted from "+ENC_OUT_FILE);
 				} catch (IOException | NtruException e) {
 					output.setText("  ERROR: Decrypt failed: "+e.getLocalizedMessage());
