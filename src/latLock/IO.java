@@ -46,60 +46,6 @@ import com.securityinnovation.jNeo.ntruencrypt.NtruEncryptKey;
  *********************************************************************************/
 public class IO {
     /**
-     * Creates a public/private key pair and saves the two components
-     * to disk.
-     *
-     * @param prng the source of randomness to use during key creation.
-     * @param oid identifies the NtruEncrypt parameter set to use.
-     * @param pubFileName where to store the public key.
-     * @param privFileName where to store the private key.
-     */
-    public static void setupNtruEncryptKey(
-        Random  prng,
-        OID     oid,
-        String  pubFileName,
-        String  privFileName)
-        throws IOException, NtruException
-    {
-        NtruEncryptKey k = NtruEncryptKey.genKey(oid, prng);
-        
-        FileOutputStream pubFile = new FileOutputStream(pubFileName);
-        pubFile.write(k.getPubKey());
-        pubFile.close();
-        
-        FileOutputStream privFile = new FileOutputStream(privFileName);
-        privFile.write(k.getPrivKey());
-        privFile.close();
-    }
-
-
-    /**
-     * Load a public or private NtruEncrypt key blob from disk and instantiate
-     * an NtruEncryptKey object from it.
-     */
-    public static NtruEncryptKey loadKey(
-        String keyFileName)
-        throws IOException, NtruException
-    {
-        // Get the file length
-        File keyFile = new File(keyFileName);
-        long fileLength = keyFile.length();
-        if (fileLength > Integer. MAX_VALUE)
-          throw new IOException("file to be encrypted is too large");
-
-        // Load the bytes from the file, instantiate an NtruEncryptKey object,
-        // then clean up and return.
-        InputStream in = new FileInputStream(keyFile);
-        byte buf[] = new byte[(int)fileLength];
-        in.read(buf);
-        in.close();
-        NtruEncryptKey k = new NtruEncryptKey(buf);
-        java.util.Arrays.fill(buf, (byte)0);
-        return k;
-    }
-
-
-    /**
      * Encrypt a file, protecting it using the supplied NtruEncrypt key.
      *
      * <p>This method actually performs two levels of encryption.
