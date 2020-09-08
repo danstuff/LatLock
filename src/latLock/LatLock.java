@@ -3,22 +3,12 @@ package latLock;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -36,11 +26,16 @@ public class LatLock extends JFrame {
 	
 	private static final String SECURITY_TYPE = "ees1499ep1";
     private static final String DEFAULT_WORKING_DIR = "/";
+    private static final String LAT_FILE_EXT = ".lat";
 	
 	//visual properties
 	private static final int WINDOW_WIDTH = 400;
 	private static final int WINDOW_HEIGHT = 200;
 	
+	//the current filename and folder selected
+	private static String working_filename = "";
+	private static String working_directory = DEFAULT_WORKING_DIR;
+			
 	private Random makePRNG(char[] seed_str) {
 		//set up PRNG with a seed given as a char string
         byte seed[] = new byte[SEED_LEN];
@@ -64,116 +59,78 @@ public class LatLock extends JFrame {
         return NtruEncryptKey.genKey(oid, prng);
 	}
 	
-	private void encrypt(char[] seed_str, String plain_path) throws IOException, NtruException{
+	private void encrypt(char[] seed_str) throws IOException, NtruException{
 		//generate keys based on seed str
 		Random prng = makePRNG(seed_str);
 		NtruEncryptKey k = genKeys(prng);
 		
         //encrypt the given file
-        IO.encryptFile(k, prng, plain_path, ENC_OUT_FILE);
+        IO.encryptFile(k, prng,
+        		working_directory+working_filename, 
+        		working_directory+working_filename+LAT_FILE_EXT);
+        
+		//remove original file
+		File f = new File(working_directory+working_filename);
+		f.delete();
 	}	
 	
-	private void decrypt(char[] seed_str, String plain_path) throws IOException, NtruException{
+	private void decrypt(char[] seed_str) throws IOException, NtruException{
 		//generate keys based on seed str
 		Random prng = makePRNG(seed_str);
 		NtruEncryptKey k = genKeys(prng);
 		
         //decrypt the encryption output
-        IO.decryptFile(k, ENC_OUT_FILE, plain_path);
+        IO.decryptFile(k, 
+        		working_directory+working_filename+LAT_FILE_EXT, 
+        		working_directory+working_filename);
+        
+		//remove encrypted file
+		File f = new File(working_directory+working_filename+LAT_FILE_EXT);
+		f.delete();
 	}
 	
-    private JPanel makeActionPanel(String header_text, String field_text, String button_text,
-                                   ActionListener button_act){
-        // Create header
-        JTextField header = new JTextField();
-		header.setHorizontalAlignment(JTextField.LEFT);
-		header.setEditable(false);
-		header.setBorder(null);
-
-		header.setFont(header_font);
-		header.setText(header_text);
-        
-        // Create selector field
-        JTextField field = new JTextField();
-		field.setFont(entry_font);
-		field.setToolTipText("Select a Folder");
-
-        // Create button
-        JButton button = new JButton(button_text);
-		button.setVerticalTextPosition(AbstractButton.CENTER);
-		button.setHorizontalTextPosition(AbstractButton.CENTER);
-		
-		button.addActionListener(al);
-        
-        // Create vertical and horizontal panel
-        JPanel option_panel = new JPanel();
-		option_panel.setLayout(new BoxLayout(option_panel, BoxLayout.Y_AXIS));
-		option_panel.setSize(160, 80);
-
-        JPanel inner_panel = new JPanel();
-        inner_panel.setLayout(new BoxLayout(inner_panel, BoxLayout.X_AXIS));
-        inner_panel.setSize(160, 40);
-
-        option_panel.add(header);
-        
-        inner_panel.add(field);
-        inner_panel.add(button);
-
-        option_panel.add(inner_panel);
-
-        return option_panel;
-    }
-	
-	private void makeGUI() {
+    private LatLock() {
 		setResizable(false);
 		setFocusable(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        //Create fonts
-		Font header_font = new Font("Sans-Serif", Font.PLAIN, 8);
-		Font edit_text_font = new Font("Sans-Serif", Font.PLAIN, 14);
-		Font button_font = new Font("Sans-Serif", Font.PLAIN, 16);
-
-		Font file_font = new Font("Sans-Serif", Font.PLAIN, 12);
-
-		// BUTTONS AND FIELDS
+		// MAIN LAYOUT
         // .lat file selector
         // TODO implement this
-        LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
+        /*LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
         lat_selector.setCallback(new LatListener() {
             @Override public void latFileSelected(String filename){
                 working_filename = filename;
             }
-        });
+        });*/
 
-        JPanel work_panel = makeActionPanel("Working Directory", "Choose a Folder", "...",
+		//create action panel to select working directory
+        ActionPanel work_panel = new ActionPanel("Working Directory", "...", false,
         new ActionListener() {
 			@Override public void actionPerformed(ActionEvent a) {
                 //open file chooser and select a file
 				JFileChooser chsr = new JFileChooser();
 				if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
-					plaintext_field.setText(chsr.getSelectedFile().getPath());
+					working_directory = chsr.getSelectedFile().getPath();
 				}
             }
         });
 
-        JPanel pass_panel = makeActionPanel("Password", "", "Lock/Unlock",
+        //create action panel to enter password and lock/unlock
+        ActionPanel pass_panel = new ActionPanel("Password", "Lock/Unlock", true,
         new ActionListener() {
 			@Override public void actionPerformed(ActionEvent a) {
                 //Lock
                 try {
-					encrypt(seed_field.getPassword(), plaintext_field.getText());
+                	//TODO
+					encrypt("ABCD".toCharArray());
 					
-					//remove original file
-					File f = new File(plaintext_field.getText());
-					f.delete();
+					//TODO clear password field
+					//seed_field.setText("");
 					
-					//clear password field
-					seed_field.setText("");
-					
-					System.out.println("Successfully encrypted to "+ENC_OUT_FILE);
+					System.out.println("Successfully encrypted to "+working_filename);
 				} catch (IOException | NtruException e) {
 					System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
 					e.printStackTrace();
@@ -181,12 +138,13 @@ public class LatLock extends JFrame {
 
                 //Unlock
                 try {
-					decrypt(seed_field.getPassword(), plaintext_field.getText());					
+                	//TODO
+					decrypt("ABCD".toCharArray());					
 					
-					//clear password field
-					seed_field.setText("");
+					//TODO clear password field
+					//seed_field.setText("");
 					
-					System.out.println("Successfully decrypted from "+ENC_OUT_FILE);
+					System.out.println("Successfully decrypted from "+working_filename);
 				} catch (IOException | NtruException e) {
 					System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
 					e.printStackTrace();
@@ -212,7 +170,7 @@ public class LatLock extends JFrame {
 		v_padding.setSize(new Dimension(WINDOW_WIDTH, 16));
 
 		// add everything
-		panel_main.add(lat_selector);
+		//panel_main.add(lat_selector);
         panel_main.add(v_padding);
 
         panel_action.add(work_panel);
@@ -230,7 +188,6 @@ public class LatLock extends JFrame {
 			@Override
 			public void run() {
 				LatLock app = new LatLock();
-				app.makeGUI();
 				app.setLocationRelativeTo(null);
 				app.setVisible(true);
 			}
