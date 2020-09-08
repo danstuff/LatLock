@@ -35,7 +35,7 @@ public class LatLock extends JFrame {
 	private static final int SEED_LEN = 32;
 	
 	private static final String SECURITY_TYPE = "ees1499ep1";
-	private static final String ENC_OUT_FILE = "mySafe.lat";
+    private static final String DEFAULT_WORKING_DIR = "/";
 	
 	//visual properties
 	private static final int WINDOW_WIDTH = 400;
@@ -81,29 +81,48 @@ public class LatLock extends JFrame {
         //decrypt the encryption output
         IO.decryptFile(k, ENC_OUT_FILE, plain_path);
 	}
-
-	private JTextField makeHeader(String text, int align, Font font) {
-		JTextField field = new JTextField();
-		field.setHorizontalAlignment(align);
-		field.setEditable(false);
-		field.setBorder(null);
-
-		field.setFont(font);
-
-		field.setText(text);
-		
-		return field;
-	}
 	
-	private JButton makeButton(String text, ActionListener al) {
-		JButton btn = new JButton(text);
-		btn.setVerticalTextPosition(AbstractButton.CENTER);
-		btn.setHorizontalTextPosition(AbstractButton.CENTER);
+    private JPanel makeActionPanel(String header_text, String field_text, String button_text,
+                                   ActionListener button_act){
+        // Create header
+        JTextField header = new JTextField();
+		header.setHorizontalAlignment(JTextField.LEFT);
+		header.setEditable(false);
+		header.setBorder(null);
+
+		header.setFont(header_font);
+		header.setText(header_text);
+        
+        // Create selector field
+        JTextField field = new JTextField();
+		field.setFont(entry_font);
+		field.setToolTipText("Select a Folder");
+
+        // Create button
+        JButton button = new JButton(button_text);
+		button.setVerticalTextPosition(AbstractButton.CENTER);
+		button.setHorizontalTextPosition(AbstractButton.CENTER);
 		
-		btn.addActionListener(al);
-		
-		return btn;
-	}
+		button.addActionListener(al);
+        
+        // Create vertical and horizontal panel
+        JPanel option_panel = new JPanel();
+		option_panel.setLayout(new BoxLayout(option_panel, BoxLayout.Y_AXIS));
+		option_panel.setSize(160, 80);
+
+        JPanel inner_panel = new JPanel();
+        inner_panel.setLayout(new BoxLayout(inner_panel, BoxLayout.X_AXIS));
+        inner_panel.setSize(160, 40);
+
+        option_panel.add(header);
+        
+        inner_panel.add(field);
+        inner_panel.add(button);
+
+        option_panel.add(inner_panel);
+
+        return option_panel;
+    }
 	
 	private void makeGUI() {
 		setResizable(false);
@@ -112,48 +131,39 @@ public class LatLock extends JFrame {
 
 		setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		Font title_font = new Font("Sans-Serif", Font.PLAIN, 20);
-		Font header_font = new Font("Sans-Serif", Font.PLAIN, 12);
-		Font entry_font = new Font(Font.MONOSPACED, Font.PLAIN, 16);
+        //Create fonts
+		Font header_font = new Font("Sans-Serif", Font.PLAIN, 8);
+		Font edit_text_font = new Font("Sans-Serif", Font.PLAIN, 14);
+		Font button_font = new Font("Sans-Serif", Font.PLAIN, 16);
+
+		Font file_font = new Font("Sans-Serif", Font.PLAIN, 12);
 
 		// BUTTONS AND FIELDS
-		// title area
-		JTextField title = makeHeader("LatLock v0.2 Alpha", JTextField.CENTER, title_font);
-		
-		// plaintext header
-		JTextField plain_head = makeHeader("  Plaintext File  ", JTextField.CENTER, header_font);
-		
-		// field for file containing plaintext input/output
-		JTextField plaintext_field = new JTextField();
-		plaintext_field.setFont(entry_font);
-		plaintext_field.setToolTipText("Plaintext File");
-		
-		// field for choosing a plaintext file
-		JButton plain_button = makeButton("...", new ActionListener() {
+        // .lat file selector
+        // TODO implement this
+        LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
+        lat_selector.setCallback(new LatListener() {
+            @Override public void latFileSelected(String filename){
+                working_filename = filename;
+            }
+        });
+
+        JPanel work_panel = makeActionPanel("Working Directory", "Choose a Folder", "...",
+        new ActionListener() {
 			@Override public void actionPerformed(ActionEvent a) {
-				//open file chooser and select a file
+                //open file chooser and select a file
 				JFileChooser chsr = new JFileChooser();
 				if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
 					plaintext_field.setText(chsr.getSelectedFile().getPath());
 				}
-			}
-		});
-		
-		// seed header
-		JTextField seed_head = makeHeader("  Password  ", JTextField.CENTER, header_font);
-		
-		// seed entry field
-		JPasswordField seed_field = new JPasswordField();
-		seed_field.setFont(entry_font);
-		seed_field.setToolTipText("Password");		
-		
-		// output message
-		JTextField output = makeHeader("", JTextField.LEFT, header_font);
-		
-		// encrypt button
-		JButton enc_button = makeButton("Encrypt", new ActionListener() {
+            }
+        });
+
+        JPanel pass_panel = makeActionPanel("Password", "", "Lock/Unlock",
+        new ActionListener() {
 			@Override public void actionPerformed(ActionEvent a) {
-				try {
+                //Lock
+                try {
 					encrypt(seed_field.getPassword(), plaintext_field.getText());
 					
 					//remove original file
@@ -163,86 +173,55 @@ public class LatLock extends JFrame {
 					//clear password field
 					seed_field.setText("");
 					
-					output.setText("  Successfully encrypted to "+ENC_OUT_FILE);
+					System.out.println("Successfully encrypted to "+ENC_OUT_FILE);
 				} catch (IOException | NtruException e) {
-					output.setText("  ERROR: Encrypt failed: "+ e.getLocalizedMessage());
+					System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-			}
-		});
-		
-		// decrypt button
-		JButton dec_button = makeButton("Decrypt", new ActionListener() {
-			@Override public void actionPerformed(ActionEvent a) {
-				try {
+
+                //Unlock
+                try {
 					decrypt(seed_field.getPassword(), plaintext_field.getText());					
 					
 					//clear password field
 					seed_field.setText("");
 					
-					output.setText("  Successfully decrypted from "+ENC_OUT_FILE);
+					System.out.println("Successfully decrypted from "+ENC_OUT_FILE);
 				} catch (IOException | NtruException e) {
-					output.setText("  ERROR: Decrypt failed: "+e.getLocalizedMessage());
+					System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-			}
-		});
-
+            }
+        });
+ 
 		// PANEL STRUCTURE
 		// basic panel creation
-		JPanel panel_rows = new JPanel();
-		panel_rows.setLayout(new BoxLayout(panel_rows, BoxLayout.PAGE_AXIS));
-		panel_rows.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+		JPanel panel_main = new JPanel();
+		panel_main.setLayout(new BoxLayout(panel_main, BoxLayout.PAGE_AXIS));
+		panel_main.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		//password panel creation
-		JPanel panel_seed = new JPanel();
-		panel_seed.setLayout(new BorderLayout());
+		//action panel creation
+		JPanel panel_action = new JPanel();
+		panel_action.setLayout(new BoxLayout(panel_action, BoxLayout.X_AXIS));
 		
-		//plaintext file panel creation
-		JPanel panel_plain = new JPanel();
-		panel_plain.setLayout(new BorderLayout());
-		
-		//button panel creation
-		JPanel buttons = new JPanel();
-		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-
 		//some generic objects for padding
-		JPanel v_padding_a = new JPanel();
-		v_padding_a.setSize(new Dimension(100, 50));
-
-		JPanel v_padding_b = new JPanel();
-		v_padding_b.setSize(new Dimension(100, 50));
-		
-		JPanel v_padding_c = new JPanel();
-		v_padding_c.setSize(new Dimension(100, 50));
+		JPanel h_padding = new JPanel();
+		h_padding.setSize(new Dimension(25, 50));
+        
+        JPanel v_padding = new JPanel();
+		v_padding.setSize(new Dimension(WINDOW_WIDTH, 16));
 
 		// add everything
-		panel_rows.add(title);
-		panel_rows.add(v_padding_a);
-		
-		panel_plain.add(plain_head, BorderLayout.WEST);
-		panel_plain.add(plaintext_field, BorderLayout.CENTER);
-		panel_plain.add(plain_button, BorderLayout.EAST);
-		
-		panel_rows.add(panel_plain);
-		
-		panel_seed.add(seed_head, BorderLayout.WEST);
-		panel_seed.add(seed_field, BorderLayout.CENTER);
-		
-		panel_rows.add(panel_seed);
-		
-		panel_rows.add(v_padding_b);
-		
-		buttons.add(enc_button);
-		buttons.add(dec_button);
-		
-		panel_rows.add(buttons);
-		
-		panel_rows.add(v_padding_c);
-		
-		panel_rows.add(output);
+		panel_main.add(lat_selector);
+        panel_main.add(v_padding);
 
-		add(panel_rows);
+        panel_action.add(work_panel);
+        panel_action.add(h_padding);
+        panel_action.add(pass_panel);
+
+		panel_main.add(panel_action);
+		
+		add(panel_main);
 	}
 	
 	public static void main(String[] args) {
