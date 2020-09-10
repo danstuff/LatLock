@@ -7,7 +7,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.Dimension;
+
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,12 +30,15 @@ public class LatLock extends JFrame {
     private static final String LAT_FILE_EXT = ".lat";
 	
 	//visual properties
-	private static final int WINDOW_WIDTH = 400;
-	private static final int WINDOW_HEIGHT = 200;
+	private static final int WINDOW_WIDTH = 640;
+	private static final int WINDOW_HEIGHT = 480;
 	
 	//the current filename and folder selected
 	private static String working_filename = "";
 	private static String working_directory = DEFAULT_WORKING_DIR;
+	
+	//visual panel instances
+	ActionPanel work_panel, pass_panel;
 			
 	private Random makePRNG(char[] seed_str) {
 		//set up PRNG with a seed given as a char string
@@ -66,11 +70,11 @@ public class LatLock extends JFrame {
 		
         //encrypt the given file
         IO.encryptFile(k, prng,
-        		working_directory+working_filename, 
-        		working_directory+working_filename+LAT_FILE_EXT);
+        		working_directory+"/"+working_filename, 
+        		working_directory+"/"+working_filename+LAT_FILE_EXT);
         
 		//remove original file
-		File f = new File(working_directory+working_filename);
+		File f = new File(working_directory+"/"+working_filename);
 		f.delete();
 	}	
 	
@@ -81,103 +85,113 @@ public class LatLock extends JFrame {
 		
         //decrypt the encryption output
         IO.decryptFile(k, 
-        		working_directory+working_filename+LAT_FILE_EXT, 
-        		working_directory+working_filename);
+        		working_directory+"/"+working_filename+LAT_FILE_EXT, 
+        		working_directory+"/"+working_filename);
         
 		//remove encrypted file
-		File f = new File(working_directory+working_filename+LAT_FILE_EXT);
+		File f = new File(working_directory+"/"+working_filename+LAT_FILE_EXT);
 		f.delete();
 	}
 	
     private LatLock() {
-		setResizable(false);
+		setResizable(true);
 		setFocusable(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		
 		setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+		
+		setTitle("Folder - 0kB - Lat");
 
 		// MAIN LAYOUT
         // .lat file selector
-        // TODO implement this
-        /*LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
-        lat_selector.setCallback(new LatListener() {
-            @Override public void latFileSelected(String filename){
-                working_filename = filename;
-            }
-        });*/
+        LatSelector lat_selector = new LatSelector();
 
 		//create action panel to select working directory
-        ActionPanel work_panel = new ActionPanel("Working Directory", "...", false,
-        new ActionListener() {
-			@Override public void actionPerformed(ActionEvent a) {
-                //open file chooser and select a file
-				JFileChooser chsr = new JFileChooser();
-				if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
-					working_directory = chsr.getSelectedFile().getPath();
-				}
-            }
-        });
+        work_panel = new ActionPanel("Working Directory", "...", false,
+	        new ActionListener() {
+				@Override public void actionPerformed(ActionEvent a) {
+	                //open file chooser and select a file
+					JFileChooser chsr = new JFileChooser();
+					chsr.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);;
+					if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
+						work_panel.setValue(chsr.getSelectedFile().getPath());
+						working_directory = work_panel.getValue();
+					}
+	            }
+	        });
 
         //create action panel to enter password and lock/unlock
-        ActionPanel pass_panel = new ActionPanel("Password", "Lock/Unlock", true,
-        new ActionListener() {
-			@Override public void actionPerformed(ActionEvent a) {
-                //Lock
-                try {
-                	//TODO
-					encrypt("ABCD".toCharArray());
-					
-					//TODO clear password field
-					//seed_field.setText("");
-					
-					System.out.println("Successfully encrypted to "+working_filename);
-				} catch (IOException | NtruException e) {
-					System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
-					e.printStackTrace();
-				}
+        pass_panel = new ActionPanel("Password", "Lock/Unlock", true,
+	        new ActionListener() {
+				@Override public void actionPerformed(ActionEvent a) {
+	                //Lock
+	                try {
+	                	//encrypt using value of password field
+						encrypt(pass_panel.getValue().toCharArray());
+						
+						//clear password field
+						pass_panel.setValue("");
+						
+						System.out.println("Successfully encrypted to "+working_filename);
+					} catch (IOException | NtruException e) {
+						System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
+						e.printStackTrace();
+					}
+	
+	                //Unlock
+	                try {
+	                	//TODO
+						decrypt(pass_panel.getValue().toCharArray());					
 
-                //Unlock
-                try {
-                	//TODO
-					decrypt("ABCD".toCharArray());					
-					
-					//TODO clear password field
-					//seed_field.setText("");
-					
-					System.out.println("Successfully decrypted from "+working_filename);
-				} catch (IOException | NtruException e) {
-					System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
-					e.printStackTrace();
-				}
-            }
-        });
+						//clear password field
+						pass_panel.setValue("");
+						
+						System.out.println("Successfully decrypted from "+working_filename);
+					} catch (IOException | NtruException e) {
+						System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
+						e.printStackTrace();
+					}
+	            }
+	        });
  
 		// PANEL STRUCTURE
 		// basic panel creation
 		JPanel panel_main = new JPanel();
 		panel_main.setLayout(new BoxLayout(panel_main, BoxLayout.PAGE_AXIS));
-		panel_main.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		//action panel creation
 		JPanel panel_action = new JPanel();
 		panel_action.setLayout(new BoxLayout(panel_action, BoxLayout.X_AXIS));
 		
-		//some generic objects for padding
-		JPanel h_padding = new JPanel();
-		h_padding.setSize(new Dimension(25, 50));
-        
-        JPanel v_padding = new JPanel();
-		v_padding.setSize(new Dimension(WINDOW_WIDTH, 16));
+		//some generic objects for padding		
+		JPanel h_padding_a = new JPanel();
+		h_padding_a.setBackground(Color.DARK_GRAY);
+		
+		JPanel h_padding_b = new JPanel();
+		h_padding_b.setBackground(Color.DARK_GRAY);
+
+		JPanel h_padding_c = new JPanel();
+		h_padding_c.setBackground(Color.DARK_GRAY);
+		
+        JPanel v_padding_a = new JPanel();
+		v_padding_a.setBackground(Color.DARK_GRAY);
+		
+        JPanel v_padding_b = new JPanel();
+		v_padding_b.setBackground(Color.DARK_GRAY);
 
 		// add everything
-		//panel_main.add(lat_selector);
-        panel_main.add(v_padding);
+		panel_main.add(lat_selector);
+        panel_main.add(v_padding_a);
 
+        panel_action.add(h_padding_a);
         panel_action.add(work_panel);
-        panel_action.add(h_padding);
+        panel_action.add(h_padding_b);
         panel_action.add(pass_panel);
-
+        panel_action.add(h_padding_c);
+        
 		panel_main.add(panel_action);
+		
+		panel_main.add(v_padding_b);
 		
 		add(panel_main);
 	}

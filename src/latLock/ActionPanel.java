@@ -1,5 +1,6 @@
 package latLock;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 
@@ -13,22 +14,18 @@ import javax.swing.JTextField;
 public class ActionPanel extends JPanel{
 	private static final long serialVersionUID = 1L;
 	
-	private static final int PANEL_WIDTH = 160;
-	private static final int PANEL_HEIGHT = 10;
-	
-	public JTextField header, field;
-	public JButton button;
+	private JTextField header, field;
+	private JButton button;
 
 	public ActionPanel(String header_text, String button_text, boolean is_password, 
 			ActionListener button_act) {
 		// Set up panel size
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setSize(PANEL_WIDTH, PANEL_HEIGHT);
 		
     	// Create fonts
-		Font header_font = new Font("Sans-Serif", Font.PLAIN, 8);
+		Font header_font = new Font("Sans-Serif", Font.PLAIN, 12);
 		Font edit_font = new Font("Sans-Serif", Font.PLAIN, 14);
-    	
+		
         // Create header
         header = new JTextField();
 		header.setHorizontalAlignment(JTextField.LEFT);
@@ -37,6 +34,9 @@ public class ActionPanel extends JPanel{
 
 		header.setFont(header_font);
 		header.setText(header_text);
+		
+		header.setForeground(Color.WHITE);
+		header.setBackground(Color.DARK_GRAY);
         
         // Create selector field
 		if(is_password) {
@@ -47,6 +47,8 @@ public class ActionPanel extends JPanel{
         
 		field.setFont(edit_font);
 		field.setToolTipText("Select a Folder");
+		
+		field.setBorder(null);
 
         // Create button
         button = new JButton(button_text);
@@ -54,11 +56,12 @@ public class ActionPanel extends JPanel{
 		button.setHorizontalTextPosition(AbstractButton.CENTER);
 		
 		button.addActionListener(button_act);
-        
+		
+		button.setBackground(Color.LIGHT_GRAY);
+		        
         // Create horizontal inner panel
         JPanel inner_panel = new JPanel();
         inner_panel.setLayout(new BoxLayout(inner_panel, BoxLayout.X_AXIS));
-        inner_panel.setSize(PANEL_WIDTH, PANEL_HEIGHT/2);
 
         add(header);
         
@@ -66,5 +69,17 @@ public class ActionPanel extends JPanel{
         inner_panel.add(button);
 
         add(inner_panel);
+	}
+	
+	public void setValue(String t) {
+		field.setText(t);
+	}
+	
+	public String getValue() {
+		return field.getText();
+	}
+	
+	public void setButtonLabel(String l) {
+		button.setText(l);
 	}
 }
