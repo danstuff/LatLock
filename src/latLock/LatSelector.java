@@ -7,59 +7,41 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.Vector;
 
 import javax.swing.JPanel;
-
-import com.kitfox.svg.SVGDiagram;
-import com.kitfox.svg.SVGException;
-import com.kitfox.svg.SVGUniverse;
-import com.kitfox.svg.app.beans.SVGIcon;
-import com.kitfox.svg.app.beans.SVGPanel;
 
 public class LatSelector extends JPanel{
 	private static final long serialVersionUID = 1L;
 
 	private static final String BKG_FILE = "res/bkg.svg";
-	private static final String FILE_FILE = "res/file.svg";
 	
-	private SVGUniverse svgUni;
-
-	private SVGDiagram svgBkg;
-	private SVGDiagram svgFile;
+	private LatSVG svgBkg;
+	private Vector<LatFileIcon> dirFiles;
 	
-	private Vector<File> dirFiles;
-	
-	public LatSelector() {
+	public LatSelector(String dir) {
 		setBackground(Color.LIGHT_GRAY);
 		setPreferredSize(new Dimension(1000, 1000));
 
-		File b = new File(BKG_FILE);
-		File f = new File(FILE_FILE);
-		
-		svgUni = new SVGUniverse();
-		
 		try {
-			svgBkg = svgUni.getDiagram(svgUni.loadSVG(b.toURL()));
-			svgFile = svgUni.getDiagram(svgUni.loadSVG(f.toURL()));
+			svgBkg = new LatSVG(BKG_FILE);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		setDirectory(dir);
 	}
 	
 	public void setDirectory(String dir) {
-		dirFiles = new Vector<File>();
+		dirFiles = new Vector<LatFileIcon>();
 		
 		File d = new File(dir);
 		
 		File[] files = d.listFiles();
 		
 		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().endsWith(LatLock.LAT_FILE_EXT)) {
-				dirFiles.add(files[i]);
+			if(!files[i].isDirectory()) {
+				dirFiles.add(new LatFileIcon(files[i]));
 			}
 		}
 	}
@@ -79,20 +61,11 @@ public class LatSelector extends JPanel{
 		
 		g.scale(sx, sy);
 		
-		try {
-			svgBkg.render(g);
-		} catch (SVGException e) {
-			e.printStackTrace();
-		}
+		svgBkg.draw(g);
 		
-		g.setTransform(originalT);
-
-		try {
-			svgFile.render(g);
-		} catch (SVGException e) {
-			e.printStackTrace();
+		for(int i = 0; i < dirFiles.size(); i++) {
+			g.setTransform(originalT);
+			dirFiles.elementAt(i).draw(g, i, getWidth());;
 		}
-		
-		g.drawString("FILENAME", 100, 200);
 	}
 }

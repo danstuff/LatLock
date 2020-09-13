@@ -26,13 +26,14 @@ public class LatLock extends JFrame {
 	private static final int SEED_LEN = 32;
 	
 	private static final String SECURITY_TYPE = "ees1499ep1";
+	
+	//file properties
     private static final String DEFAULT_WORKING_DIR = "/";
-    
     public static final String LAT_FILE_EXT = ".lat";
 	
 	//visual properties
-	private static final int WINDOW_WIDTH = 640;
-	private static final int WINDOW_HEIGHT = 480;
+	private static final int WINDOW_WIDTH = 900;
+	private static final int WINDOW_HEIGHT = 600;
 	
 	//the current filename and folder selected
 	private static String working_filename = "";
@@ -103,26 +104,31 @@ public class LatLock extends JFrame {
 		
 		setTitle("Folder - 0kB - Lat");
 
+		setBackground(Color.DARK_GRAY);
+		
 		// MAIN LAYOUT
         // .lat file selector
-        LatSelector lat_selector = new LatSelector();
+        LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
 
 		//create action panel to select working directory
-        work_panel = new ActionPanel("Working Directory", "...", false,
+        work_panel = new ActionPanel("Working Directory", DEFAULT_WORKING_DIR, "...", false,
 	        new ActionListener() {
 				@Override public void actionPerformed(ActionEvent a) {
 	                //open file chooser and select a file
 					JFileChooser chsr = new JFileChooser();
 					chsr.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);;
 					if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
-						work_panel.setValue(chsr.getSelectedFile().getPath());
-						working_directory = work_panel.getValue();
+						working_directory = chsr.getSelectedFile().getPath();
+						work_panel.setValue(working_directory);
+						lat_selector.setDirectory(working_directory);
+						
+						repaint();
 					}
 	            }
 	        });
 
         //create action panel to enter password and lock/unlock
-        pass_panel = new ActionPanel("Password", "Lock/Unlock", true,
+        pass_panel = new ActionPanel("Password", "", "Lock/Unlock", true,
 	        new ActionListener() {
 				@Override public void actionPerformed(ActionEvent a) {
 	                //Lock
@@ -159,10 +165,12 @@ public class LatLock extends JFrame {
 		// basic panel creation
 		JPanel panel_main = new JPanel();
 		panel_main.setLayout(new BoxLayout(panel_main, BoxLayout.PAGE_AXIS));
+		panel_main.setBackground(Color.DARK_GRAY);
 
 		//action panel creation
 		JPanel panel_action = new JPanel();
 		panel_action.setLayout(new BoxLayout(panel_action, BoxLayout.X_AXIS));
+		panel_action.setBackground(Color.DARK_GRAY);
 		
 		//some generic objects for padding		
 		JPanel h_padding_a = new JPanel();

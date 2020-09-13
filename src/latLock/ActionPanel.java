@@ -17,8 +17,10 @@ public class ActionPanel extends JPanel{
 	private JTextField header, field;
 	private JButton button;
 
-	public ActionPanel(String header_text, String button_text, boolean is_password, 
-			ActionListener button_act) {
+	public ActionPanel(String header_text, String field_text, String button_text,
+			boolean is_password, ActionListener button_act) {
+		setBackground(Color.DARK_GRAY);
+		
 		// Set up panel size
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
@@ -47,6 +49,7 @@ public class ActionPanel extends JPanel{
         
 		field.setFont(edit_font);
 		field.setToolTipText("Select a Folder");
+		field.setText(field_text);
 		
 		field.setBorder(null);
 
@@ -62,6 +65,8 @@ public class ActionPanel extends JPanel{
         // Create horizontal inner panel
         JPanel inner_panel = new JPanel();
         inner_panel.setLayout(new BoxLayout(inner_panel, BoxLayout.X_AXIS));
+        
+        inner_panel.setBackground(Color.DARK_GRAY);
 
         add(header);
         
