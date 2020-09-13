@@ -27,7 +27,8 @@ public class LatLock extends JFrame {
 	
 	private static final String SECURITY_TYPE = "ees1499ep1";
     private static final String DEFAULT_WORKING_DIR = "/";
-    private static final String LAT_FILE_EXT = ".lat";
+    
+    public static final String LAT_FILE_EXT = ".lat";
 	
 	//visual properties
 	private static final int WINDOW_WIDTH = 640;
