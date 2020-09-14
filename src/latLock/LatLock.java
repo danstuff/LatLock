@@ -108,7 +108,7 @@ public class LatLock extends JFrame {
 		
 		// MAIN LAYOUT
         // .lat file selector
-        LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
+		LatSelector lat_selector = new LatSelector(DEFAULT_WORKING_DIR);
 
 		//create action panel to select working directory
         work_panel = new ActionPanel("Working Directory", DEFAULT_WORKING_DIR, "...", false,
@@ -131,32 +131,35 @@ public class LatLock extends JFrame {
         pass_panel = new ActionPanel("Password", "", "Lock/Unlock", true,
 	        new ActionListener() {
 				@Override public void actionPerformed(ActionEvent a) {
-	                //Lock
-	                try {
-	                	//encrypt using value of password field
-						encrypt(pass_panel.getValue().toCharArray());
-						
-						//clear password field
-						pass_panel.setValue("");
-						
-						System.out.println("Successfully encrypted to "+working_filename);
-					} catch (IOException | NtruException e) {
-						System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
-						e.printStackTrace();
-					}
-	
-	                //Unlock
-	                try {
-	                	//TODO
-						decrypt(pass_panel.getValue().toCharArray());					
+					File f = lat_selector.getSelectedFile();
+					
+					if(f.getName().endsWith(LAT_FILE_EXT)) {
+		                //Unlock
+		                try {
+							decrypt(pass_panel.getValue().toCharArray());					
 
-						//clear password field
-						pass_panel.setValue("");
-						
-						System.out.println("Successfully decrypted from "+working_filename);
-					} catch (IOException | NtruException e) {
-						System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
-						e.printStackTrace();
+							//clear password field
+							pass_panel.setValue("");
+							
+							System.out.println("Successfully decrypted from "+working_filename);
+						} catch (IOException | NtruException e) {
+							System.out.println("ERROR: Decrypt failed: "+e.getLocalizedMessage());
+							e.printStackTrace();
+						}
+					} else {
+		                //Lock
+		                try {
+		                	//encrypt using value of password field
+							encrypt(pass_panel.getValue().toCharArray());
+							
+							//clear password field
+							pass_panel.setValue("");
+							
+							System.out.println("Successfully encrypted to "+working_filename);
+						} catch (IOException | NtruException e) {
+							System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
+							e.printStackTrace();
+						}
 					}
 	            }
 	        });

@@ -1,5 +1,6 @@
 package latLock;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 
@@ -11,18 +12,32 @@ public class LatFileIcon {
 	
 	private File file;
 	
-	public LatFileIcon(File file) {		
-		this.file = file;  
-	}
+	private int x, y;
 	
-	public void draw(Graphics2D g, int index, float width) {	
+	private void calcPos(int index, float width) {
 		if(width < SVG_WIDTH) { return; }
 		
 		int per_row = (int) Math.floor(width/SVG_WIDTH);
 		int y_index = (int) Math.floor(index / (float) per_row);
 		int x_index = index % per_row;
 		
-		g.translate(SVG_WIDTH*x_index, SVG_HEIGHT*y_index);
+		x = SVG_WIDTH*x_index;
+		y = SVG_HEIGHT*y_index;
+	}
+	
+	public LatFileIcon(File file) {		
+		this.file = file;  
+	}
+	
+	public void draw(Graphics2D g, int index, float width, boolean selected) {	
+		calcPos(index, width);
+		
+		g.translate(x, y);
+		
+		if(selected) {
+			g.setColor(Color.RED);
+			g.drawRect(0, 0, SVG_WIDTH, SVG_HEIGHT);
+		}
 		
 		fileSVG.draw(g);
 		
@@ -33,5 +48,10 @@ public class LatFileIcon {
 	
 	public File getFile() {
 		return file;
+	}
+	
+	public boolean getCollide(int mx, int my) {
+		return x <= mx && mx < x+SVG_WIDTH &&
+				y <= my && my < y+SVG_HEIGHT;		
 	}
 }
