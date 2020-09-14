@@ -19,10 +19,13 @@ public class LatSelector extends JPanel{
 	private static final String BKG_FILE = "res/bkg.svg";
 	
 	private LatSVG svgBkg;
+	
 	private Vector<LatFileIcon> dirFiles;
+	private String dir;
+	
 	private int selectedDirFile = 0;
 	
-	public LatSelector(String dir) {
+	public LatSelector() {
 		setBackground(Color.LIGHT_GRAY);
 		setPreferredSize(new Dimension(1000, 1000));
 
@@ -31,8 +34,6 @@ public class LatSelector extends JPanel{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		setDirectory(dir);
 		
 		addMouseListener(new MouseListener() {
 			@Override public void mouseReleased(MouseEvent m) {}
@@ -56,23 +57,37 @@ public class LatSelector extends JPanel{
 		});
 	}
 	
-	public void setDirectory(String dir) {
+	public long setDirectory(String dir) {
+		if(this.dir != dir) {
+			selectedDirFile = 0;
+		}
+		
 		dirFiles = new Vector<LatFileIcon>();
+		this.dir = dir;
 		
 		File d = new File(dir);
 		
 		File[] files = d.listFiles();
 		
-		selectedDirFile = 0;
+		long size = 0;
 		
 		for(int i = 0; i < files.length; i++) {
 			if(!files[i].isDirectory()) {
 				dirFiles.add(new LatFileIcon(files[i]));
+				size += files[i].length();
 			}
 		}
+		
+		return size;
+	}
+	
+	public void refresh() {
+		setDirectory(dir);
+		repaint();
 	}
 	
 	public File getSelectedFile() {
+		if(dirFiles.size() == 0) { return null; }
 		return dirFiles.get(selectedDirFile).getFile();
 	}
 	

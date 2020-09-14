@@ -16,7 +16,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.securityinnovation.jNeo.NtruException;
-import com.securityinnovation.jNeo.OID;
 import com.securityinnovation.jNeo.Random;
 import com.securityinnovation.jNeo.ntruencrypt.NtruEncryptKey;
 
@@ -64,12 +63,11 @@ public class IO {
     public static void encryptFile(
         NtruEncryptKey ntruKey,
         Random  prng,
-        String  inFileName,
+        File  inFile,
         String  outFileName)
         throws IOException, NtruException
     {
         // Get the input size
-        File inFile = new File(inFileName);
         long fileLength = inFile.length();
         if (fileLength > Integer. MAX_VALUE)
           throw new IOException("file to be encrypted is too large");
@@ -134,12 +132,11 @@ public class IO {
      */
     public static void decryptFile(
         NtruEncryptKey ntruKey,
-        String  inFileName,
+        File  inFile,
         String  outFileName)
         throws IOException, NtruException
     {
         // Get the input size
-        File inFile = new File(inFileName);
         //long fileLength = inFile.length();
             
         // Parse the contents of the encrypted file
