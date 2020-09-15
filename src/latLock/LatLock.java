@@ -35,9 +35,13 @@ public class LatLock extends JFrame {
 	//visual properties
 	private static final int WINDOW_WIDTH = 900;
 	private static final int WINDOW_HEIGHT = 600;
+
+	public static final Color COLOR = new Color(8, 7, 8);
 	
 	//visual panel instances
-	ActionPanel work_panel, pass_panel;
+	LatSelector latSelector;
+	StatPanel statPanel;
+	ActionPanel workPanel, passPanel;
 			
 	private Random makePRNG(char[] seed_str) {
 		//set up PRNG with a seed given as a char string
@@ -99,16 +103,20 @@ public class LatLock extends JFrame {
 		
 		setTitle("Lat");
 
-		setBackground(Color.DARK_GRAY);
+		setBackground(COLOR);
 		
 		// MAIN LAYOUT
         // .lat file selector
-		LatSelector latSelector = new LatSelector();
+		latSelector = new LatSelector();
 		float size =  Math.round(latSelector.setDirectory(DEFAULT_WORKING_DIR)/10000.0f)/100.0f;
 		setTitle(DEFAULT_WORKING_DIR + " - " + size + " MB - Lat");
 		
+		statPanel = new StatPanel("File Information", 2);
+		statPanel.setLine(0, "Select a file");
+		statPanel.setLine(1, "0 B");
+		
 		//create action panel to select working directory
-        work_panel = new ActionPanel("Current Directory", DEFAULT_WORKING_DIR, "...", false,
+        workPanel = new ActionPanel("Current Directory", DEFAULT_WORKING_DIR, "...", false,
 	        new ActionListener() {
 				@Override public void actionPerformed(ActionEvent a) {
 	                //open file chooser and select a file
@@ -116,7 +124,7 @@ public class LatLock extends JFrame {
 					chsr.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);;
 					if(chsr.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
 						String dir = chsr.getSelectedFile().getPath();
-						work_panel.setValue(dir);
+						workPanel.setValue(dir);
 						
 						float size = Math.round(latSelector.setDirectory(dir)/10000.0f)/100.0f;
 						setTitle(dir + " - " + size + " MB - Lat");
@@ -127,7 +135,7 @@ public class LatLock extends JFrame {
 	        });
 
         //create action panel to enter password and lock/unlock
-        pass_panel = new ActionPanel("Password", "", "Lock/Unlock", true,
+        passPanel = new ActionPanel("Password", "", "Lock/Unlock", true,
 	        new ActionListener() {
 				@Override public void actionPerformed(ActionEvent a) {
 					File f = latSelector.getSelectedFile();
@@ -139,10 +147,10 @@ public class LatLock extends JFrame {
 					if(f.getName().endsWith(LAT_FILE_EXT)) {
 		                //Unlock
 		                try {
-							decrypt(pass_panel.getValue().toCharArray(), f);					
+							decrypt(passPanel.getValue().toCharArray(), f);					
 
 							//clear password field
-							pass_panel.setValue("");
+							passPanel.setValue("");
 							
 							System.out.println("Successfully decrypted from "+f.getName());
 						} catch (IOException | NtruException e) {
@@ -153,12 +161,12 @@ public class LatLock extends JFrame {
 		                //Lock
 		                try {
 		                	//encrypt using value of password field
-							encrypt(pass_panel.getValue().toCharArray(), f);
+							encrypt(passPanel.getValue().toCharArray(), f);
 							
 							//clear password field
-							pass_panel.setValue("");
+							passPanel.setValue("");
 							
-							System.out.println("Successfully encrypted to "+f.getName());
+							System.out.println("Successfully encrypted from "+f.getName());
 						} catch (IOException | NtruException e) {
 							System.out.println("ERROR: Encrypt failed: "+ e.getLocalizedMessage());
 							e.printStackTrace();
@@ -171,38 +179,43 @@ public class LatLock extends JFrame {
 		// basic panel creation
 		JPanel panel_main = new JPanel();
 		panel_main.setLayout(new BoxLayout(panel_main, BoxLayout.PAGE_AXIS));
-		panel_main.setBackground(Color.DARK_GRAY);
+		panel_main.setBackground(COLOR);
 
 		//action panel creation
 		JPanel panel_action = new JPanel();
 		panel_action.setLayout(new BoxLayout(panel_action, BoxLayout.X_AXIS));
-		panel_action.setBackground(Color.DARK_GRAY);
+		panel_action.setBackground(COLOR);
 		
 		//some generic objects for padding		
 		JPanel h_padding_a = new JPanel();
-		h_padding_a.setBackground(Color.DARK_GRAY);
+		h_padding_a.setBackground(COLOR);
 		
 		JPanel h_padding_b = new JPanel();
-		h_padding_b.setBackground(Color.DARK_GRAY);
+		h_padding_b.setBackground(COLOR);
 
 		JPanel h_padding_c = new JPanel();
-		h_padding_c.setBackground(Color.DARK_GRAY);
+		h_padding_c.setBackground(COLOR);
+		
+		JPanel h_padding_d = new JPanel();
+		h_padding_d.setBackground(COLOR);
 		
         JPanel v_padding_a = new JPanel();
-		v_padding_a.setBackground(Color.DARK_GRAY);
-		
+		v_padding_a.setBackground(COLOR);
+
         JPanel v_padding_b = new JPanel();
-		v_padding_b.setBackground(Color.DARK_GRAY);
+		v_padding_b.setBackground(COLOR);
 
 		// add everything
 		panel_main.add(latSelector);
         panel_main.add(v_padding_a);
 
         panel_action.add(h_padding_a);
-        panel_action.add(work_panel);
+        panel_action.add(statPanel);
         panel_action.add(h_padding_b);
-        panel_action.add(pass_panel);
+        panel_action.add(workPanel);
         panel_action.add(h_padding_c);
+        panel_action.add(passPanel);
+        panel_action.add(h_padding_d);
         
 		panel_main.add(panel_action);
 		
@@ -212,7 +225,22 @@ public class LatLock extends JFrame {
 		
 		new Timer().schedule(new TimerTask() {
 			@Override public void run() {
+				//refresh the selector
 				latSelector.refresh();
+
+				//set password button text based on file type
+				File f = latSelector.getSelectedFile();
+				
+				if(f.getName().endsWith(LAT_FILE_EXT)) {
+					passPanel.setButtonLabel("Unlock");
+				} else {
+					passPanel.setButtonLabel("Lock");
+				}
+				
+				//update the statPanel
+				statPanel.setLine(0, f.getName());
+				statPanel.setLine(1, f.length() + " B");
+				
 			}
 		}, 100, 1000);
 	}
