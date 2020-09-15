@@ -8,17 +8,20 @@ import com.kitfox.svg.SVGDiagram;
 import com.kitfox.svg.SVGException;
 import com.kitfox.svg.SVGUniverse;
 
-public class LatSVG {	
+public class SVGGraphic {	
 	private static SVGUniverse svgUni = null;
 	
 	private SVGDiagram svgDiag;
 	
-	public LatSVG(String filename) {
+	@SuppressWarnings("deprecation")
+	public SVGGraphic(String filename) {
 		try {
+			//create a universe if one doesn't already exist
 			if(svgUni == null) {
 				svgUni = new SVGUniverse();
 			}
 			
+			//load a diagram using that universe
 			svgDiag = svgUni.getDiagram(svgUni.loadSVG(
 							new File(filename).toURL()));
 			

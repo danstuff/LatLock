@@ -39,7 +39,7 @@ public class LatLock extends JFrame {
 	public static final Color COLOR = new Color(8, 7, 8);
 	
 	//visual panel instances
-	LatSelector latSelector;
+	SelectorPanel latSelector;
 	StatPanel statPanel;
 	ActionPanel workPanel, passPanel;
 			
@@ -107,7 +107,7 @@ public class LatLock extends JFrame {
 		
 		// MAIN LAYOUT
         // .lat file selector
-		latSelector = new LatSelector();
+		latSelector = new SelectorPanel();
 		float size =  Math.round(latSelector.setDirectory(DEFAULT_WORKING_DIR)/10000.0f)/100.0f;
 		setTitle(DEFAULT_WORKING_DIR + " - " + size + " MB - Lat");
 		
