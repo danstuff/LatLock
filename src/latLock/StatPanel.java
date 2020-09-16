@@ -1,6 +1,7 @@
 package latLock;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.util.Vector;
 
@@ -19,6 +20,7 @@ public class StatPanel extends JPanel{
 		
 		// Set up panel size
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setPreferredSize(new Dimension(400, 50));
 		
     	// Create fonts
 		Font header_font = new Font("Sans-Serif", Font.PLAIN, 14);

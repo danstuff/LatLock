@@ -16,7 +16,7 @@ import javax.swing.JTextField;
 public class ActionPanel extends JPanel{
 	private static final long serialVersionUID = 1L;
 	
-	private static final int LINE_WIDTH = 200;
+	private static final int LINE_WIDTH = 300;
 	private static final int LINE_HEIGHT = 10;
 	
 	private JTextField header, field;
