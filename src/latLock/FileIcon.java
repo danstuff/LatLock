@@ -74,7 +74,7 @@ public class FileIcon {
 	
 	public boolean getCollide(int mx, int my) {
 		//simple box collision
-		return x+SVG_PAD <= mx && mx < x+SVG_PAD+SVG_SIZE &&
-				y+SVG_PAD <= my && my < y+SVG_PAD+SVG_SIZE;		
+		return x <= mx && mx < x+SVG_PAD*2+SVG_SIZE &&
+				y <= my && my < y+SVG_PAD*2+SVG_SIZE;		
 	}
 }
