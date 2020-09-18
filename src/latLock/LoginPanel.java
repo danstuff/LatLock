@@ -31,7 +31,7 @@ public class LoginPanel extends JPanel{
 		setBackground(LatLock.COLOR);
 		
 		// Set up panel size
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
     	// Create fonts
@@ -74,23 +74,35 @@ public class LoginPanel extends JPanel{
 		button_panel.add(button);
 
 		//create some padding objects
-		JPanel[] padding = new JPanel[2];
-		for(int i = 0; i < 2; i++) {
+		JPanel[] padding = new JPanel[5];
+		for(int i = 0; i < 5; i++) {
 			padding[i] = new JPanel();
 			padding[i].setBackground(LatLock.COLOR);
 		}
+		
+		JPanel vertPanel = new JPanel();
+		vertPanel.setLayout(new BoxLayout(vertPanel, BoxLayout.Y_AXIS));
+		vertPanel.setBackground(LatLock.COLOR);
 
-        add(header);
+        vertPanel.add(header);
         
-        add(userField);
+        vertPanel.add(userField);
         
-        add(padding[0]);
+        vertPanel.add(padding[0]);
         
-        add(passField);
+        vertPanel.add(passField);
         
-        add(padding[1]);
+        vertPanel.add(padding[1]);
         
-        add(button_panel);
+        vertPanel.add(button_panel);
+        
+        vertPanel.add(padding[2]);
+        
+        add(padding[3]);
+        
+        add(vertPanel);
+        
+        add(padding[4]);
 	}
 
 	public byte[] getCredentialSeed() {
@@ -107,5 +119,10 @@ public class LoginPanel extends JPanel{
 		}
 		
 		return res;
+	}
+	
+	public String getUsername(){ {
+		return userField.getText();
+	}
 	}
 }

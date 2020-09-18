@@ -1,32 +1,73 @@
 package latLock;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.net.Socket;
+
 public class WebTransfer {	
-	public static final char STATUS_OK = 0;
-	public static final char STATUS_CONNECTED = 1;
-	public static final char STATUS_FILE_SENT = 2;
-	public static final char STATUS_CON_ERR = 3;
-	public static final char STATUS_FILE_ERR = 4;
+	private Socket sock;
 
-	public char status = STATUS_OK;
-
-	public WebTransfer(){
-
+	public WebTransfer(){}
+	
+	public boolean connect(String host, int port) {
+		try {
+			sock = new Socket(host, port);
+			
+			if(sock.isConnected()) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 
-	public void connect(String server_addr, Runnable cb) {
-
+	public boolean disconnect() {
+		try {
+			sock.close();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 
-	public void disconnect() {
+	public boolean exchangeFile(String filename) {
+		try {
+			FileInputStream fileIn = new FileInputStream(filename);
+			DataOutputStream dataOut = new DataOutputStream(sock.getOutputStream());
+			
+			int count;
+			byte[] buf = new byte[8192];
+			while((count = fileIn.read(buf)) > 0) {
+				dataOut.write(buf, 0, count);
+			}
+			
+			fileIn.close();
+			dataOut.close();
 
-	}
-
-	public void sendFile(File f, Runnable cb) {
-
-	}
-
-	public void sendNewUsers(Vector<Username> new_users){
-
+			DataInputStream dataIn = new DataInputStream(sock.getInputStream());
+			FileOutputStream fileOut = new FileOutputStream(filename);
+			
+			count = 0;
+			buf = new byte[8192];
+			while((count = dataIn.read(buf)) > 0) {
+				fileOut.write(buf, 0, count);
+			}
+			
+			fileOut.close();
+			dataIn.close();
+			
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 }
 
